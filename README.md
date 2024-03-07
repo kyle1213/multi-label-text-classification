@@ -18,4 +18,6 @@ model over confidence(uncertainty)
 
 data capacity(long text issue)
 - linformer
+- https://arxiv.org/abs/2006.04768
 
+pre-train pre-trained model(PLM)
