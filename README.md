@@ -12,6 +12,7 @@ data imbalance
 - https://ieeexplore.ieee.org/document/8672066
 
 model over confidence(uncertainty)
+- https://openreview.net/forum?id=enKhMfthDFS
 - https://arxiv.org/pdf/2210.10160.pdf
 - https://www.tensorflow.org/tutorials/understanding/sngp?hl=ko
 - bayesian NN, rule etc.
