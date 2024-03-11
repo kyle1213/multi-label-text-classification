@@ -11,6 +11,7 @@ data imbalance
 - https://www.sciencedirect.com/science/article/pii/S0167865511003734?via%3Dihub
 - https://ieeexplore.ieee.org/document/8672066
 - focal loss -> asymmetric loss
+- https://arxiv.org/abs/2207.07080
   
 model over-confidence(uncertainty)
 - https://openreview.net/forum?id=enKhMfthDFS
