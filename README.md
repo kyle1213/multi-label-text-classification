@@ -19,7 +19,7 @@ data imbalance
 model over-confidence(uncertainty)
 - 베이지안 뉴럴넷 - 학습할 가중치를 non-deterministic한 통계로 표현하기 -> 적분으로 계산이 필요한데 근사 방법이 있다 + 파라미터가 너무 많아서 적용이 어렵다
 - 베이지안 optimization - given data를 통해 미지의 함수(블랙박스 함수)를 예측 by 불확실성을 줄이는 데이터 포인트 고르기 등
-- gaussian process - 데이터 포인트로 함수를 비결정적으로 표현하기(평균과 분산)
+- gaussian process - 데이터 포인트(x, y)로 함수평균, new point x와 x, 커널 함수로 공분산을 구하고 posterior 평균 분산을 구해서 함수예측?
 - https://openreview.net/forum?id=enKhMfthDFS
 - https://arxiv.org/pdf/2210.10160.pdf
 - https://www.tensorflow.org/tutorials/understanding/sngp?hl=ko
