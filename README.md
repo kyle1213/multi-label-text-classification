@@ -8,6 +8,7 @@ few dataset
 data imbalance
 - https://www.sciencedirect.com/science/article/pii/S0031320321001527
 - BERT사용할 때 임베딩 레이어도 학습을 하는데, SMOTE같은 upscaling은 사용하기 어려워 보임. -> 임베딩 레이어를 지나고 SMOTE하기?
+- 그리고 데이터가 없거나 극소수인 라벨은 SMOTE 할 수 없음
 - https://link.springer.com/chapter/10.1007/978-3-642-41822-8_42
 - https://www.sciencedirect.com/science/article/pii/S0031320312001471?via%3Dihub
 - https://www.sciencedirect.com/science/article/pii/S0167865511003734?via%3Dihub
