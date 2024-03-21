@@ -30,6 +30,8 @@ data capacity(long text issue)
 - linformer
 - 입력 길이 n이라면 트랜스포머(셀프어텐션)의 시간, 공간 복잡도는 O(N^2)인데, 행렬 연산을 low rank로 바꿔서 O(N)인 트랜스포머 구현. BUT no pre-trained 모델
 - https://arxiv.org/abs/2006.04768
+- bigbird
+- sparse attention으로 메모리, 연산량 효율 증가
 
 pre-train pre-trained model(PLM)
 - 의미 없을듯
