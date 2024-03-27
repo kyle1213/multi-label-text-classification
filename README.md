@@ -35,3 +35,11 @@ data capacity(long text issue)
 
 pre-train pre-trained model(PLM)
 - 의미 없을듯
+
+
+
+
+
+
+data
+- 불균형이 심함
