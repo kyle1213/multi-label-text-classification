@@ -95,6 +95,11 @@ metric
   - 라벨간 정확도가 아닌 1들의 정확도와 0들의 정확도. 1들의 정확도가 높아지면 macro f1도 같이 올라서 주의깊게 봤음
 - confusion metrix
   - 클래스 별 지표를 보기 좋았다. 물론 클래스가 너무 많아 힘들었음
+- 참고 지표가 너무 많고 적용 방법론에 따라 trade off도 많고 변화량도 미묘하며 데이터 양은 적고 불균형도 심하니 성능 개선도 힘들었다
+ 
+학습 중
+- 데이터 fold에 따라 val set 정확도, loss가 엄청 높기도 함
+- 
 
 
 그 외
@@ -106,16 +111,15 @@ metric
   - one_acc : 0.38
   - zero_acc : 0.99
   - 적은 데이터의 라벨은 아예 맞추지 못함
-- bigbird, ASL, semi-EDA, preprocess 등
-  - micro f1 : 0.53
-  - macro f1 : 0.13
-  - weighted f1 : 0.52
-  - acc : 0.33
-  - one_acc : 0.56
-  - zero_acc : 0.98
+- bigbird, ASL, semi-EDA, preprocess, kfold ensemble
+  - micro f1 : 0.6
+  - macro f1 : 0.12
+  - weighted f1 : 0.57
+  - acc : 0.44
+  - one_acc : 0.57
+  - zero_acc : 0.988
   - 정확도는 낮아도 적은 데이터의 라벨도 맞추지만 1을 맞추려는 trade off로 0을 틀리며 정확도가 떨어짐 / 목표는 틀리더라도 1을 찾는(recall)이므로 감안하고 진행중
   - 물론 각 방법론을 다르게 적용할 때마다 성능이 다 다르게 나옴
 - 결국 데이터 불균형으로 인한 문제라 생각하며 추후에는 일종의 수도 데이터, 직접 데이터를 만드는 작업도 해볼 예정(직접 안 만들어도 비슷한 도메인의 다른 데이터를 추가 수집하는 등)
 - 불확실성과 관련된 공부도 할 예정
-- kfold, ensemble등 도 구현할 예정
 - hyper parameter tuning / optuna?
