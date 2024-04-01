@@ -62,7 +62,7 @@ data
     - 어떻게 적용하냐에 따라 클래스간 1의 불균형이 줄어들긴 하지만 클래스 내(0과 1)의 불균형이 심해져 성능에 악영향을 주었다. -> 클래스 내 불균형이 클래스간 불균형보다 심함 -> 모든 속성을 독립적으로 binary classification해서 그런듯
     - 3가지를 적용해서 실험 결과 EDA가 없는거보다 못한 경우도 있지만 보통 val set에서 성능 향상이 있었다.
   - 하지만 EDA는 문장 자체는 형식이 비슷해서 그런지 EDA를 많이 적용한 데이터일 수록 val loss가 높게 올랐다 -> EDA없이 val loss = 7 / EDA로 train set이 많아질수록 val loss = 10, 13, 19 . . .
-  - val loss가 높아지면서 수렴하지만 val acc도 높아지며 수렴함 -> train set에 오버핏되긴 하나, val set에서 low confidence로 정답을 맞추기는 함 
+  - val loss가 높아지면서 수렴하지만 val acc도 높아지며 수렴함 -> train set에 오버핏되긴 하나, val set에서 low confidence로 정답을 맞추기는 함 -> 그게 아니라 high confidence로 틀리는듯 -> imbalance때문에 정확도가 높아진거임
 
 
 model
@@ -104,6 +104,7 @@ metric
   - bigbird의 경우 오버핏이 항상 심하게 일어나지만 metric이 우수함
   - bigbird가 오버핏이 일어나기 전인 낮은  epochs에서 1의 정확도가 70퍼센트나 됨. 물론 0의 정확도는 95퍼센트로, 대다수가 0의 라벨인 데이터인 현 상황에서 정확도는 10퍼센트로 떨어짐
   - 틀려도 1을 진짜 많이 맞추려면 오버핏이 안 된 모델 사용. 전반적인 metric이 우선이면 그냥 오버핏시켜야 함. 오버핏 해도 ASL 덕분에 적은 라벨을 못맞추는건 아님.
+  - non-오버핏 모델은, low confidence로 문제를 해결하는듯 -> 전반적인 acc는 떨어지지만 1의 acc가 상승. 하지만 1에 대해 똑똑해지는게 아니라, 1을 찍는 느낌 -> 0을 많이 틀리니까, 심지어 1을 맞추는게 confident하지도 않음
 
 
 그 외
