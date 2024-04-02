@@ -3,12 +3,9 @@ multi-label text classification
 
 few dataset
 - https://arxiv.org/abs/1901.11196
-- EDA로 적은 데이터만 증강(frequent 라벨이 있는 데이터는 증강 x) -> 증강해도 데이터가 많이 안생김
 
 data imbalance
 - https://www.sciencedirect.com/science/article/pii/S0031320321001527
-- BERT사용할 때 임베딩 레이어도 학습을 하는데, SMOTE같은 upscaling은 사용하기 어려워 보임. -> 임베딩 레이어를 지나고 SMOTE하기?
-- 그리고 데이터가 없거나 극소수인 라벨은 SMOTE 할 수 없음
 - https://link.springer.com/chapter/10.1007/978-3-642-41822-8_42
 - https://www.sciencedirect.com/science/article/pii/S0031320312001471?via%3Dihub
 - https://www.sciencedirect.com/science/article/pii/S0167865511003734?via%3Dihub
@@ -20,7 +17,7 @@ data imbalance
 model over-confidence(uncertainty)
 - 베이지안 뉴럴넷 - 학습할 가중치를 non-deterministic한 통계로 표현하기 -> 적분으로 계산이 필요한데 근사 방법이 있다 + 파라미터가 너무 많아서 적용이 어렵다
 - 베이지안 optimization - given data를 통해 미지의 함수(블랙박스 함수)를 예측 by 불확실성을 줄이는 데이터 포인트 고르기 등
-- gaussian process - 데이터 포인트(x, y)로 함수평균, new point x와 x, 커널 함수로 공분산을 구하고 posterior 평균 분산을 구해서 함수예측?
+- gaussian process - 데이터 포인트(x, y)로 함수평균, new point x와 x, 커널 함수로 공분산을 구하고 posterior 평균 분산을 구해서 함수예측(함수의 특정 지점의 통계량을 구할 수 있음)?
 - https://openreview.net/forum?id=enKhMfthDFS
 - https://arxiv.org/pdf/2210.10160.pdf
 - https://www.tensorflow.org/tutorials/understanding/sngp?hl=ko
@@ -45,7 +42,7 @@ problem transformations
 - label power set
  - 라벨 수가 너무 많음 -> power set은 더 많을듯(물론 없는 라벨셋도 존재하겠지만 실제 데이터 확인결과 너무 많았음)
 - binary relevance
-  - 가장 쉽고 이상적인듯, 물론 라벨 수가 많아서 불균형이 심해짐
+  - 가장 쉽고 이상적인듯, 물론 라벨 수가 많아서(약 30개) 불균형이 심해짐
 - classifier chain
   - 사람이 글을 쓰고 그 글의 속성에 상관관계는 없다고 가정함 -> 당연히 있을 수 있음 추후 프로젝트 기간 내에 여유가 있으면 진행할 예정
 - multi-label multi-class classification
@@ -56,12 +53,12 @@ data
   - SMOTE -> 데이터가 없거나 매우 적은(10개 이하) 라벨이 많아 적용 힘듦
   - EDA -> 여전히 없는 라벨이 있어서 적용이 어려움 
 - 불균형
-  - 불균형 지수(IRLbl)가 사실 무한이 나옴 -> 라벨이 없는 데이터 때문 -> 라벨이 없는 경우 1개만 가지고 있다고 가정하고 계산하니 수치가 187 나옴
+  - 불균형 지수(IRLbl)가 사실 무한이 나옴 -> 라벨이 없는 데이터 때문 -> 라벨이 없는 경우 1개만 가지고 있다고 가정하고 계산하니 수치가 폴드에 따라 180~500 나옴
   - EDA를 전체 데이터에 적용 / 많은 데이터를 가진 라벨을 제외하고 적용 / 적은 데이터를 가진 라벨에 적용
     - IRLbl이 줄어들긴 함 -> 의미가 있을진 모르겠음(160)
     - 어떻게 적용하냐에 따라 클래스간 1의 불균형이 줄어들긴 하지만 클래스 내(0과 1)의 불균형이 심해져 성능에 악영향을 주었다. -> 클래스 내 불균형이 클래스간 불균형보다 심함 -> 모든 속성을 독립적으로 binary classification해서 그런듯
     - 3가지를 적용해서 실험 결과 EDA가 없는거보다 못한 경우도 있지만 보통 val set에서 성능 향상이 있었다.
-  - 하지만 EDA는 문장 자체는 형식이 비슷해서 그런지 EDA를 많이 적용한 데이터일 수록 val loss가 높게 올랐다 -> EDA없이 val loss = 7 / EDA로 train set이 많아질수록 val loss = 10, 13, 19 . . .
+  - 하지만 EDA는 문장 자체는 형식이 비슷해서 그런지 EDA를 많이 적용한 데이터일수록 train set에 overfit되서 그런지 val loss가 높게 올랐다 -> EDA없이 val loss = 7 / EDA로 train set이 많아질수록 val loss = 10, 13, 19 . . .
   - val loss가 높아지면서 수렴하지만 val acc도 높아지며 수렴함 -> train set에 오버핏되긴 하나, val set에서 low confidence로 정답을 맞추기는 함 -> 그게 아니라 high confidence로 틀리는듯 -> imbalance때문에 정확도가 높아진거임
 
 
@@ -70,7 +67,7 @@ model
   - 인터넷 글 특성상 512 이상의 데이터도 꽤 있음을 확인함 -> bert는 버리겠지만
 - 후에 kobigbird 사용
   - kobigbird 사전학습 모델을 가져왔지만, 코랩 환경상 1024로 테스트가 힘들었음 -> 512로 했는데 그럼 사실 의미가 없다
-  - 하지만 사전학습 모델이 bert는 사전이 1만개 였는데, bigbird는 3만개였음 -> 그래서 그런가 성능은 bigbird가 좋았다
+  - 하지만 사전학습 모델이 bert는 사전이 1만개 였는데, bigbird는 3만개였음 -> 그래서 그런가 성능(acc, f1 score)은 bigbird가 좋았다(loss는 bert가 better)
 - 길이가 짧은 데이터로 구성된 도메인의 경우 bert를 사용해도 무방할 것이고, gpu 메모리를 늘려 bigbird 1024로 사용해도 될 것 같다
 
 
@@ -100,8 +97,8 @@ metric
 학습 중
 - 데이터 fold에 따라 val set 정확도, loss가 엄청 높기도 함
 - 오버피팅 문제
-  - bert는 오버핏이 거의 안 일어나지만 대부분의 metric에서 bigbird보다 저조함
-  - bigbird의 경우 오버핏이 항상 심하게 일어나지만 metric이 우수함
+  - bert는 오버핏이 거의 안 일어나지만 대부분의 metric에서 bigbird보다 저조함(loss 제외)
+  - bigbird의 경우 오버핏이 항상 심하게 일어나지만 metric이 우수함(loss 제외)
   - bigbird가 오버핏이 일어나기 전인 낮은  epochs에서 1의 정확도가 70퍼센트나 됨. 물론 0의 정확도는 95퍼센트로, 대다수가 0의 라벨인 데이터인 현 상황에서 정확도는 10퍼센트로 떨어짐
   - 틀려도 1을 진짜 많이 맞추려면 오버핏이 안 된 모델 사용. 전반적인 metric이 우선이면 그냥 오버핏시켜야 함. 오버핏 해도 ASL 덕분에 적은 라벨을 못맞추는건 아님.
   - non-오버핏 모델은, low confidence로 문제를 해결하는듯 -> 전반적인 acc는 떨어지지만 1의 acc가 상승. 하지만 1에 대해 똑똑해지는게 아니라, 1을 찍는 느낌 -> 0을 많이 틀리니까, 심지어 1을 맞추는게 confident하지도 않음
