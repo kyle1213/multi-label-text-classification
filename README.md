@@ -1,5 +1,7 @@
 # multi-label-text-classification
-multi-label text classification
+
+데이터
+- 커뮤니티나 카페와 같은 인터넷에서 특정 키워드가 포함된 텍스트 데이터 모두 수집(런닝화, 러닝화)
 
 few dataset
 - https://arxiv.org/abs/1901.11196
