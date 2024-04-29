@@ -2,8 +2,27 @@
 
 데이터
 - 커뮤니티나 카페와 같은 인터넷에서 특정 키워드가 포함된 텍스트 데이터 모두 수집(런닝화, 러닝화) / 약 1200개
-- 추가 수집된 트위터 데이터 약 1200개
 - 특정 클래스를 가진 데이터가 많았고(클래스간 불균형), multi-label task이다보니 클래스 내 불균형과 클래스 집합 불균형이 있었다.
+- 클래스는 33개
+
+데이터 증강
+- fine tuning이어도 클래스 수에 비해 데이터가 적은 것 같아 Easy Data Augmentaiton을 사용했다.
+- random deletion, random swap 사용하여 각 방법마다 2번 -> 데이터 약 4배로 증강 -> 성능 개선이 있었다
+- 추가로 트위터에서 특정 클래스를 잘 나타내는 키워드로 데이터를 약한?(noisy? imperfect?) 라벨링하며 데이터를 추가 수집함 -> 라벨링의 시간을 더 투자하지 못해, 불완전한 라벨링인 대신 데이터 양을 늘리겠다는 생각 -> 성능 개선이 있었다
+
+딥러닝 모델
+1. koBert
+- pre-trained kobert에 classifier layer를 추가하여 사용
+- 무난한 base 느낌의 결과가 나옴
+  
+2. koBigBird
+- 원래 의도는, 최대 512 길이를 받는 bert의 한계를 넘고 더 긴 데이터를 보려고 bigbird를 사용했으나, 그럼에도 개발환경인 colab의 gpu 메모리 문제를 해결할 수 없었다.
+- 그 결과 웃기게도 bert와 같은 512 길이, 즉 sparse attention 없는 bigbird를 사용하게 되었다.
+- 더 웃긴건 pre-train 데이터의 차이 때문에 bert보다 성능이 좋게 나옴
+  
+3. kcelectra
+- 인터넷 글 특성상 korean commentary를 데이터로 pre-train한 kcelectra가 좋은 성능을 나타낼 것 같아서 사용하게 됨
+- 실제로 train, val의 성능이 올랐지만, 트위터에서 수집한 데이터가 없는 test set에서는 성능이 다른 모델에 비해 떨어졌다.
 
 few dataset
 - https://arxiv.org/abs/1901.11196
