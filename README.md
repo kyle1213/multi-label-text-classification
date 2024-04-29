@@ -24,6 +24,19 @@
 - 인터넷 글 특성상 korean commentary를 데이터로 pre-train한 kcelectra가 좋은 성능을 나타낼 것 같아서 사용하게 됨
 - 실제로 train, val의 성능이 올랐지만, 트위터에서 수집한 데이터가 없는 test set에서는 성능이 다른 모델에 비해 떨어졌다.
 
+학습 조기 종료(early stopping)
+- val loss가 특정 patience 만큼 상승하지 않는다면 학습을 조기 종료하였다
+
+learning rate scheduler
+- cosine scheduler
+
+details
+- batch size: 6
+- epochs: 100 -> early stopping때문에 보통 6즈음에서 끝남
+- learning rate: 5e-5
+- 5-fold 학습을 함
+- lr가 계속 변하여 weight decay가 잘 반영되지 않는 adam을 개선한 adamw를 optimizer로 사용
+
 few dataset
 - https://arxiv.org/abs/1901.11196
 
