@@ -94,7 +94,7 @@ class AsymmetricLoss(nn.Module):
         return -loss.sum(1)
 
 
-class EarlyStopping():
+class EarlyStopping:
     def __init__(self, path, patience=5, verbose=False, delta=0):
 
         self.patience = patience
