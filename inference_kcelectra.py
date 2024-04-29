@@ -4,35 +4,9 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from tqdm import tqdm_notebook
 from sklearn.metrics import f1_score
 
+from training import koelectra_Dataset
 from data import data_prep
-from utils import connect_cuda, acc, calculate_one_accuracy, calculate_zero_accuracy, calculate_class_accuracy
-
-
-class CustomDataset(torch.utils.data.Dataset):
-    def __init__(self, dataset, tokenizer):
-        self.dataset = dataset
-        self.tokenizer = tokenizer
-
-    def __getitem__(self, i):
-        inputs = self.tokenizer(
-        self.dataset[i][0],
-        return_tensors='pt',
-        truncation=True,
-        max_length=512,
-        pad_to_max_length=True,
-        add_special_tokens=True
-        )
-
-        input_ids = inputs['input_ids'][0]
-        attention_mask = inputs['attention_mask'][0]
-        token_type_ids = inputs['token_type_ids'][0]
-
-        y = torch.tensor(self.dataset[i][1])
-
-        return input_ids, attention_mask, token_type_ids, y
-
-    def __len__(self):
-        return (len(self.dataset))
+from utils import connect_cuda, acc, partial_acc, calculate_one_accuracy, calculate_zero_accuracy, calculate_class_accuracy
 
 
 device = connect_cuda()
@@ -42,7 +16,7 @@ train_data, test_data = data_prep()
 tokenizer = AutoTokenizer.from_pretrained("beomi/KcELECTRA-base-v2022")
 length = 512
 
-test_Dataset = CustomDataset(test_data, tokenizer)
+test_Dataset = koelectra_Dataset(test_data, tokenizer)
 test_dataloader = torch.utils.data.DataLoader(test_Dataset, batch_size=1, shuffle=False)
 model = AutoModelForSequenceClassification.from_pretrained('beomi/KcELECTRA-base-v2022', num_labels=33, problem_type='multi_label_classification').to(device)
 
@@ -99,6 +73,10 @@ print('weighted: ', f1_score(ensemble, y_labels, average='weighted'))
 print('acc: ', acc(ensemble, y_labels))
 print('one_acc: ', calculate_one_accuracy(ensemble, y_labels))
 print('zero_acc: ', calculate_zero_accuracy(ensemble, y_labels))
+print('50%-partial acc: ', partial_acc(ensemble, y_labels, 0.5))
+print('80%-partial acc: ', partial_acc(ensemble, y_labels, 0.8))
+print('90%-partial acc: ', partial_acc(ensemble, y_labels, 0.9))
+print('95%-partial acc: ', partial_acc(ensemble, y_labels, 0.95))
 
 for i in range(33):
     print(i + 1, calculate_class_accuracy(ensemble, y_labels, i))

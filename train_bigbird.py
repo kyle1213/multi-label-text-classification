@@ -7,7 +7,7 @@ from sklearn.model_selection import KFold
 
 from data import *
 from utils import *
-from training import *
+from training import AsymmetricLoss, EarlyStopping, BBClassifier, kobigbird_training, kobigbird_Dataset, kobigbird_validate, kobigbird_make_fold
 
 
 device = connect_cuda()
@@ -46,7 +46,7 @@ for fold, (train_idx, val_idx) in enumerate(kfolds):
     model = BBClassifier(model_path, config, dr_rate=0.5).to(device)
     earlystopping = EarlyStopping(path='./model/bb_' + str(fold) + 'fold_model.pt', patience=15, verbose=True, delta=0)
 
-    kfold_train_dataloader, kfold_val_dataloader = make_fold(train_idx, val_idx, train_data, batch_size, tokenizer, length)
+    kfold_train_dataloader, kfold_val_dataloader = kobigbird_make_fold(train_idx, val_idx, train_data, batch_size, tokenizer, length)
 
     no_decay = ['bias', 'LayerNorm.weight']
     optimizer_grouped_parameters = [
@@ -62,8 +62,8 @@ for fold, (train_idx, val_idx) in enumerate(kfolds):
     scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=warmup_step, num_training_steps=t_total)
 
     for e in range(num_epochs):
-        train_loss, train_acc, scheduler = training(model, kfold_train_dataloader, optimizer, device, loss_fn, scheduler, fold, max_grad_norm, e)
-        val_loss, val_acc = validate(model, kfold_val_dataloader, device, loss_fn, fold, e)
+        train_loss, train_acc, scheduler = kobigbird_training(model, kfold_train_dataloader, optimizer, device, loss_fn, scheduler, fold, max_grad_norm, e)
+        val_loss, val_acc = kobigbird_validate(model, kfold_val_dataloader, device, loss_fn, fold, e)
 
         earlystopping(val_loss, model)
         if earlystopping.early_stop:

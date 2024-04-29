@@ -4,12 +4,13 @@ from torch import nn
 
 from tqdm import tqdm_notebook
 
-from transformers import AutoModel
+from transformers import AutoModel, AutoTokenizer
 
 from utils import calc_accuracy
+from data import FullEasyDataAugmentation, PartialEasyDataAugmentation, miniEasyDataAugmentation
 
 
-class CustomDataset(torch.utils.data.Dataset):
+class kobigbird_Dataset(torch.utils.data.Dataset):
     def __init__(self, data, tokenizer, length):
         self.data = data
         self.tokenized = [tokenizer(d[0], padding='max_length', truncation=True, max_length=length) for d in data]
@@ -22,6 +23,33 @@ class CustomDataset(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.data)
+
+
+class koelectra_Dataset(torch.utils.data.Dataset):
+    def __init__(self, dataset, tokenizer):
+        self.dataset = dataset
+        self.tokenizer = tokenizer
+
+    def __getitem__(self, i):
+        inputs = self.tokenizer(
+        self.dataset[i][0],
+        return_tensors='pt',
+        truncation=True,
+        max_length=512,
+        pad_to_max_length=True,
+        add_special_tokens=True
+        )
+
+        input_ids = inputs['input_ids'][0]
+        attention_mask = inputs['attention_mask'][0]
+        token_type_ids = inputs['token_type_ids'][0]
+
+        y = torch.tensor(self.dataset[i][1])
+
+        return input_ids, attention_mask, token_type_ids, y
+
+    def __len__(self):
+        return (len(self.dataset))
 
 
 class BBClassifier(nn.Module):
@@ -132,12 +160,14 @@ class EarlyStopping:
         self.val_loss_min = val_loss
 
 
-def make_fold(train_idx, val_idx, train_data, batch_size, tokenizer, length):
+def kobigbird_make_fold(train_idx, val_idx, train_data, batch_size, tokenizer, length):
     kfold_train = [train_data[i] for i in train_idx]
     kfold_val = [train_data[i] for i in val_idx]
 
-    kfold_train_Dataset = CustomDataset(kfold_train, tokenizer, length)
-    kfold_val_Dataset = CustomDataset(kfold_val, tokenizer, length)
+    eda_train = FullEasyDataAugmentation(kfold_train)
+
+    kfold_train_Dataset = kobigbird_Dataset(eda_train, tokenizer, length)
+    kfold_val_Dataset = kobigbird_Dataset(kfold_val, tokenizer, length)
 
     kfold_train_dataloader = torch.utils.data.DataLoader(kfold_train_Dataset, batch_size=batch_size, shuffle=True)
     kfold_val_dataloader = torch.utils.data.DataLoader(kfold_val_Dataset, batch_size=batch_size, shuffle=False) # , collate_fn=lambda x: x
@@ -145,7 +175,25 @@ def make_fold(train_idx, val_idx, train_data, batch_size, tokenizer, length):
     return kfold_train_dataloader, kfold_val_dataloader
 
 
-def training(model, kfold_train_dataloader, optimizer, device, loss_fn, scheduler, fold, max_grad_norm, e):
+def koelectra_make_fold(train_idx, val_idx, train_data, batch_size):
+    tokenizer = AutoTokenizer.from_pretrained("beomi/KcELECTRA-base-v2022")
+
+    kfold_train = [train_data[i] for i in train_idx]
+    kfold_val = [train_data[i] for i in val_idx]
+
+    eda_train = FullEasyDataAugmentation(kfold_train)
+
+    kfold_train_Dataset = koelectra_Dataset(eda_train, tokenizer)
+    kfold_val_Dataset = koelectra_Dataset(kfold_val, tokenizer)
+
+    kfold_train_dataloader = torch.utils.data.DataLoader(kfold_train_Dataset, batch_size=batch_size, shuffle=True)
+    kfold_val_dataloader = torch.utils.data.DataLoader(kfold_val_Dataset, batch_size=batch_size,
+                                                       shuffle=False)  # , collate_fn=lambda x: x
+
+    return kfold_train_dataloader, kfold_val_dataloader
+
+
+def kobigbird_training(model, kfold_train_dataloader, optimizer, device, loss_fn, scheduler, fold, max_grad_norm, e):
     model.train()
     train_losses = 0
     train_correct = 0
@@ -173,7 +221,35 @@ def training(model, kfold_train_dataloader, optimizer, device, loss_fn, schedule
     return train_losses/len(kfold_train_dataloader), train_correct/counter, scheduler
 
 
-def validate(model, kfold_val_dataloader, device, loss_fn, fold, e):
+def koelectra_training(model, kfold_train_dataloader, optimizer, device, loss_fn, scheduler, fold, max_grad_norm, e):
+    model.train()
+    train_losses = 0
+    train_correct = 0
+    counter = 0
+    _ = 0
+    for batch_id, (input_ids_batch, attention_masks_batch, token_type_ids_batch, y_batch) in enumerate(tqdm_notebook(kfold_train_dataloader)):
+        optimizer.zero_grad()
+        input_ids_batch = input_ids_batch.long().to(device)
+        attention_masks_batch = attention_masks_batch.long().to(device)
+        token_type_ids_batch = token_type_ids_batch.long().to(device)
+        y_batch = y_batch.long().to(device)
+        out = model(input_ids_batch, attention_masks_batch, token_type_ids_batch)[0]
+        counter += y_batch.size(0)
+        train_loss = loss_fn(out, y_batch.float()).mean()
+        train_losses += train_loss.cpu().detach()
+        train_loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
+        optimizer.step()
+        _, tmp_correct = calc_accuracy(out, y_batch.float())
+        train_correct += tmp_correct
+
+        scheduler.step()  # Update learning rate schedule
+    print("{}fold epoch {} train acc {} train loss {}".format(fold, e+1, train_correct / counter, train_losses/len(kfold_train_dataloader)))
+
+    return train_losses/len(kfold_train_dataloader), train_correct/counter, scheduler
+
+
+def kobigbird_validate(model, kfold_val_dataloader, device, loss_fn, fold, e):
     model.eval()
     val_losses = 0
     val_correct = 0
@@ -190,6 +266,29 @@ def validate(model, kfold_val_dataloader, device, loss_fn, fold, e):
             val_loss = loss_fn(out, label.float()).mean()
             val_losses += val_loss.cpu().detach()
             _, tmp_correct = calc_accuracy(out, label)
+            val_correct += tmp_correct
+        print("{}fold epoch {} val acc {} val losses {}".format(fold, e+1, val_correct/counter, val_losses/len(kfold_val_dataloader)))
+
+    return val_losses/len(kfold_val_dataloader), val_correct/counter
+
+
+def koelectra_validate(model, kfold_val_dataloader, device, loss_fn, fold, e):
+    model.eval()
+    val_losses = 0
+    val_correct = 0
+    counter = 0
+    _ = 0
+    with torch.no_grad():
+        for batch_id, (input_ids_batch, attention_masks_batch, token_type_ids_batch, y_batch) in enumerate(tqdm_notebook(kfold_val_dataloader)):
+            input_ids_batch = input_ids_batch.long().to(device)
+            attention_masks_batch = attention_masks_batch.long().to(device)
+            token_type_ids_batch = token_type_ids_batch.long().to(device)
+            y_batch = y_batch.long().to(device)
+            out = model(input_ids_batch, attention_masks_batch, token_type_ids_batch)[0]
+            counter += y_batch.size(0)
+            val_loss = loss_fn(out, y_batch.float()).mean()
+            val_losses += val_loss.cpu().detach()
+            _, tmp_correct = calc_accuracy(out, y_batch)
             val_correct += tmp_correct
         print("{}fold epoch {} val acc {} val losses {}".format(fold, e+1, val_correct/counter, val_losses/len(kfold_val_dataloader)))
 

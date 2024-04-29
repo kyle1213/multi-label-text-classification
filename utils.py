@@ -36,6 +36,20 @@ def acc(predictions, targets):
     return mean_acc
 
 
+def partial_acc(predictions, targets, p):
+    total_acc = 0
+    for pred, target in zip(predictions, targets):
+        match_count = 0
+        for i in range(len(pred)):
+            if pred[i] == target[i]:
+                match_count += 1
+            if match_count >= len(pred)*p:
+                total_acc += 1
+                break
+    mean_acc = total_acc / len(predictions)
+    return mean_acc
+
+
 def calculate_one_accuracy(predictions, targets):
     correct_count = 0
     total_count = 0

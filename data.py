@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import re
+import random
+import pickle
 from collections import Counter
 from sklearn.model_selection import train_test_split
 
@@ -376,6 +378,132 @@ def data_eda(data):
     histogram_0and1(data_y)
     histogram_1s(data_y)
     histogram_label_set(data_y)
+
+
+def random_deletion(words, p):
+    if len(words) == 1:
+        return words
+
+    new_words = []
+    for word in words:
+        r = random.uniform(0, 1)
+        if r > p:
+            new_words.append(word)
+
+    if len(new_words) == 0:
+        rand_int = random.randint(0, len(words)-1)
+        return [words[rand_int]]
+
+    return new_words
+
+
+def random_swap(words, n):
+    new_words = words.copy()
+    for _ in range(n):
+        new_words = swap_word(new_words)
+
+    return new_words
+
+def swap_word(new_words):
+    random_idx_1 = random.randint(0, len(new_words)-1)
+    random_idx_2 = random_idx_1
+    counter = 0
+
+    while random_idx_2 == random_idx_1:
+        random_idx_2 = random.randint(0, len(new_words)-1)
+        counter += 1
+        if counter > 3:
+            return new_words
+
+    new_words[random_idx_1], new_words[random_idx_2] = new_words[random_idx_2], new_words[random_idx_1]
+    return new_words
+
+
+def EDA(sentence, alpha_rs=0.1, p_rd=0.1, num_aug=4):
+    words = sentence.split(' ')
+    words = [word for word in words if word is not ""]
+    num_words = len(words)
+
+    augmented_sentences = []
+    num_new_per_technique = int(num_aug/4) + 1
+
+    n_rs = max(1, int(alpha_rs*num_words))
+
+    # rs
+    for _ in range(num_new_per_technique):
+        a_words = random_swap(words, n_rs)
+        augmented_sentences.append(" ".join(a_words))
+
+    # rd
+    for _ in range(num_new_per_technique):
+        a_words = random_deletion(words, p_rd)
+        augmented_sentences.append(" ".join(a_words))
+
+    random.shuffle(augmented_sentences)
+
+    if num_aug >= 1:
+        augmented_sentences = augmented_sentences[:num_aug]
+    else:
+        keep_prob = num_aug / len(augmented_sentences)
+        augmented_sentences = [s for s in augmented_sentences if random.uniform(0, 1) < keep_prob]
+
+    augmented_sentences.append(sentence)
+
+    return augmented_sentences
+
+
+def FullEasyDataAugmentation(data_set):
+    #wordnet = {}
+    #with open("./drive//MyDrive/bert_classification/wordnet.pickle", "rb") as f:
+    #    wordnet = pickle.load(f)
+
+    eda_data = []
+    for d in data_set:
+        temp = EDA(d[0])
+        for e in temp:
+            eda_data.append([e, d[1]])
+
+    return eda_data
+
+
+def PartialEasyDataAugmentation(data_set):
+    wordnet = {}
+    with open("./drive//MyDrive/bert_classification/wordnet.pickle", "rb") as f:
+        wordnet = pickle.load(f)
+
+    temp = None
+    eda_data = []
+    indices_to_set = {2}
+    for d in data_set:
+        flag = 0
+        for idx, value in enumerate(d[1]):
+            if idx not in indices_to_set and value == 1:
+                temp = EDA(d[0])
+                flag = 1
+                break
+        if flag == 0:
+            temp = [d[0]]
+        for e in temp:
+            eda_data.append([e, d[1]])
+
+    return eda_data
+
+
+def miniEasyDataAugmentation(data_set):
+    wordnet = {}
+    with open("./drive//MyDrive/bert_classification/wordnet.pickle", "rb") as f:
+        wordnet = pickle.load(f)
+
+    eda_data = []
+    for t in data_set:
+        if t[1][2] == 1:
+            eda_data.append([t[0], t[1]])
+        else:
+            temp = EDA(t[0], num_aug=18)
+            for e in temp:
+                eda_data.append([e, t[1]])
+
+    return eda_data
 
 
 if __name__ == '__main__':
