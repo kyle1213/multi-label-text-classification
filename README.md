@@ -37,6 +37,13 @@ details
 - 5-fold 학습을 함
 - lr가 계속 변하여 weight decay가 잘 반영되지 않는 adam을 개선한 adamw를 optimizer로 사용
 
+
+
+
+
+메모
+------------
+
 few dataset
 - https://arxiv.org/abs/1901.11196
 
@@ -66,13 +73,8 @@ data capacity(long text issue)
 - bigbird
 - sparse attention으로 메모리, 연산량 효율 증가
 
-pre-train pre-trained model(PLM)
-- 의미 없을듯
-
  
  
-
- -----
 
 problem transformations
 - label power set
@@ -145,33 +147,3 @@ metric
 - 그래도 50에폭시정도 하면 기존 sota정도 나옴
 - 여기서 느낀점: 이전에 이상하게 진행하던 경우 loss가 몇배는 높게되서 학습이 가속되서 그런지 수렴이 훨씬 빨랐다. 신기한건 local optimum에 그래도 가긴 했다는 것.
 
-메인 데이터:
-- 정확도가 5프로 이하로 나옴
-- class 별 정확도를 보니 클래스 내 불균형이 거의 없는 클래스의 0의 정확도가 낮음 -> 데이터 부족으로 해당 클래스의 optimum을 찾지 못한듯 + 해당 클래스를 표현하는 데이터는 다양하지만 그런 표현을 학습하기에 데이터는 적음
-- 라벨 to vector를 잘못한 채 학습하고 있었다. . .
-- 수정해도 결과는 비슷했고, 원인도 비슷한걸로 예상됨.
-- 어려워하는 class를 2차 속성으로 추가 분리한 결과 정확도는 훨씬 낮아짐(0.2%) 하지만 각 속성별 0과 1의 정확도는 이전보다 올라감
-- 혹시나 bert로 학습하니 이상하리만치 학습결과가 좋아짐. fold1은 0퍼 2=40, 3=50, 4=70 . . . 결과는 내일 분석
-
-
-그 외
-- 기본의 경우
-  - micro f1 : 0.51
-  - macro f1 : 0.06
-  - weighted f1 : 0.43
-  - acc : 0.45
-  - one_acc : 0.38
-  - zero_acc : 0.99
-  - 적은 데이터의 라벨은 아예 맞추지 못하고, confusion matrix 결과 모조리 0으로 풀고 있음
-- bigbird, ASL, semi-EDA, preprocess, kfold ensemble
-  - micro f1 : 0.6
-  - macro f1 : 0.12
-  - weighted f1 : 0.57
-  - acc : 0.44
-  - one_acc : 0.57
-  - zero_acc : 0.988
-  - 정확도는 낮아도 적은 데이터의 라벨도 맞추지만 1을 맞추려는 trade off로 0을 틀리며 정확도가 떨어짐 / 목표는 틀리더라도 1을 찾는(recall)이므로 감안하고 진행중
-  - 물론 각 방법론을 다르게 적용할 때마다 성능이 다 다르게 나옴
-- 결국 데이터 불균형으로 인한 문제라 생각하며 추후에는 일종의 수도 데이터, 직접 데이터를 만드는 작업도 해볼 예정(직접 안 만들어도 비슷한 도메인의 다른 데이터를 추가 수집하는 등)
-- 불확실성과 관련된 공부도 할 예정
-- hyper parameter tuning / optuna?
