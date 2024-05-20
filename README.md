@@ -31,15 +31,17 @@
 learning rate scheduler
 - cosine scheduler
 
+Self-Ensemble, Self-Distilation
+- single 모델의 time step 간 self-ensemble 모델 사용
+- 해당 모델을 teacher로 하여 output logits을 knowledge distillation에 사용 
+
 details
 - batch size: 6
 - epochs: 100 -> early stopping때문에 보통 6즈음에서 끝남
 - learning rate: 5e-5
 - 5-fold 학습을 함
 - lr가 계속 변하여 weight decay가 잘 반영되지 않는 adam을 개선한 adamw를 optimizer로 사용
-- loss : Asymmetric Loss
-
-
+- loss : Asymmetric Loss for Imbalance data
 
 
 
