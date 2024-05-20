@@ -1,4 +1,5 @@
 import torch
+from sklearn.metrics import classification_report, f1_score
 
 
 def connect_cuda():
@@ -12,6 +13,30 @@ def connect_cuda():
         device = torch.device("cpu")
 
     return device
+
+
+def micro_calculate_f1_score(predictions, targets):
+    f1 = f1_score(targets, predictions, average='micro')
+
+    return f1
+
+
+def macro_calculate_f1_score(predictions, targets):
+    f1 = f1_score(targets, predictions, average='macro')
+
+    return f1
+
+
+def samples_calculate_f1_score(predictions, targets):
+    f1 = f1_score(targets, predictions, average='samples')
+
+    return f1
+
+
+def weighted_calculate_f1_score(predictions, targets):
+    f1 = f1_score(targets, predictions, average='weighted')
+
+    return f1
 
 
 def calc_accuracy(xs, ys):
@@ -93,11 +118,15 @@ def calculate_class_accuracy(predictions, targets, class_num):
             total_one_count += 1
 
     if total_one_count != 0:
-      one_accuracy = one_correct_count / total_one_count
+        one_accuracy = one_correct_count / total_one_count
     else:
-      one_accuracy = 999
+        one_accuracy = 999
     if total_zero_count != 0:
-      zero_accuracy = zero_correct_count / total_zero_count
+        zero_accuracy = zero_correct_count / total_zero_count
     else:
-      zero_accuracy = 999
+        zero_accuracy = 999
     return zero_accuracy, one_accuracy, total_one_count
+
+
+def f1_report(predictions, targets):
+    return classification_report(targets, predictions)

@@ -1,13 +1,10 @@
 from transformers import AutoTokenizer, AutoConfig
-
 from transformers import AdamW
 from transformers.optimization import get_cosine_schedule_with_warmup
-
 from sklearn.model_selection import KFold
-
 from data import *
 from utils import *
-from training import AsymmetricLoss, EarlyStopping, BBClassifier, kobigbird_training, kobigbird_Dataset, kobigbird_validate, kobigbird_make_fold
+from training import AsymmetricLoss, EarlyStopping, BBClassifier, kobigbird_training, kobigbird_validate, kobigbird_make_fold
 
 
 device = connect_cuda()
@@ -19,7 +16,7 @@ model_path = "monologg/kobigbird-bert-base"
 tokenizer = AutoTokenizer.from_pretrained(model_path)
 length = 512
 
-config=AutoConfig.from_pretrained(model_path)
+config = AutoConfig.from_pretrained(model_path)
 config._name_or_path = 'kr.kim'
 print(config)
 
@@ -43,8 +40,8 @@ val_accs_per_fold = []
 for fold, (train_idx, val_idx) in enumerate(kfolds):
     train_losses, val_losses = [], []
     train_accs, val_accs = [], []
-    model = BBClassifier(model_path, config, dr_rate=0.5).to(device)
-    earlystopping = EarlyStopping(path='./model/bb_' + str(fold) + 'fold_model.pt', patience=15, verbose=True, delta=0)
+    model = BBClassifier(model_path, config, dr_rate=0.1).to(device)
+    earlystopping = EarlyStopping(path='./model/bb_' + str(fold) + 'fold_model.pt', patience=3, verbose=True, delta=0)
 
     kfold_train_dataloader, kfold_val_dataloader = kobigbird_make_fold(train_idx, val_idx, train_data, batch_size, tokenizer, length)
 
@@ -77,3 +74,15 @@ for fold, (train_idx, val_idx) in enumerate(kfolds):
     val_accs_per_fold.append(val_accs)
     train_losses_list_per_fold.append(train_losses)
     val_losses_list_per_fold.append(val_losses)
+
+for i in range(5):
+    plt.plot(train_accs_per_fold[i])
+    plt.plot(val_accs_per_fold[i])
+    plt.show()
+    plt.clf()
+
+for i in range(5):
+    plt.plot(train_losses_list_per_fold[i])
+    plt.plot(val_losses_list_per_fold[i])
+    plt.show()
+    plt.clf()

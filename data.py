@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import re
 import random
-import pickle
+# import pickle
 from collections import Counter
 from sklearn.model_selection import train_test_split
 
@@ -404,6 +404,7 @@ def random_swap(words, n):
 
     return new_words
 
+
 def swap_word(new_words):
     random_idx_1 = random.randint(0, len(new_words)-1)
     random_idx_2 = random_idx_1
@@ -453,9 +454,9 @@ def EDA(sentence, alpha_rs=0.1, p_rd=0.1, num_aug=4):
 
 
 def FullEasyDataAugmentation(data_set):
-    #wordnet = {}
-    #with open("./drive//MyDrive/bert_classification/wordnet.pickle", "rb") as f:
-    #    wordnet = pickle.load(f)
+    # wordnet = {}
+    # with open("./drive//MyDrive/bert_classification/wordnet.pickle", "rb") as f:
+    #     wordnet = pickle.load(f)
 
     eda_data = []
     for d in data_set:
@@ -467,9 +468,9 @@ def FullEasyDataAugmentation(data_set):
 
 
 def PartialEasyDataAugmentation(data_set):
-    wordnet = {}
-    with open("./drive//MyDrive/bert_classification/wordnet.pickle", "rb") as f:
-        wordnet = pickle.load(f)
+    # wordnet = {}
+    # with open("./drive//MyDrive/bert_classification/wordnet.pickle", "rb") as f:
+    #     wordnet = pickle.load(f)
 
     temp = None
     eda_data = []
@@ -490,9 +491,9 @@ def PartialEasyDataAugmentation(data_set):
 
 
 def miniEasyDataAugmentation(data_set):
-    wordnet = {}
-    with open("./drive//MyDrive/bert_classification/wordnet.pickle", "rb") as f:
-        wordnet = pickle.load(f)
+    # wordnet = {}
+    # with open("./drive//MyDrive/bert_classification/wordnet.pickle", "rb") as f:
+    #     wordnet = pickle.load(f)
 
     eda_data = []
     for t in data_set:
