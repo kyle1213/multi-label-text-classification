@@ -1,6 +1,6 @@
 import torch.utils.data
 from training import kobigbird_Dataset, BBClassifier
-from data import data_prep
+from data import shoes_data_prep
 from transformers import AutoTokenizer, AutoConfig
 from tqdm import tqdm_notebook
 from utils import *
@@ -18,7 +18,7 @@ max_len = length
 batch_size = 16
 
 
-train_data, test_data = data_prep()
+train_data, test_data = shoes_data_prep()
 test_Dataset = kobigbird_Dataset(test_data, tokenizer, max_len)
 test_dataloader = torch.utils.data.DataLoader(test_Dataset, batch_size=16, shuffle=False)
 model = BBClassifier(dr_rate=0.5, config=config, model_path=model_path).to(device)

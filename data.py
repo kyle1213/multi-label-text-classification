@@ -324,7 +324,7 @@ def histogram_label_set(labels):
     plt.show()
 
 
-def data_prep():
+def shoes_data_prep():
     df1 = pd.read_excel("./data/러닝화_분류용 데이터정리.xlsx")
     df2 = pd.read_excel("./data/트위터_러닝화.xlsx")
 
