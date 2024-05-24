@@ -5,7 +5,7 @@ from torch import nn
 from transformers import AutoModel, AutoTokenizer
 from utils import calc_accuracy
 from data import FullEasyDataAugmentation, PartialEasyDataAugmentation, miniEasyDataAugmentation
-from tqdm import tqdm_notebook
+from tqdm.notebook import tqdm
 
 
 class Dataset(torch.utils.data.Dataset):
@@ -39,7 +39,7 @@ class Dataset(torch.utils.data.Dataset):
 
 
 class BBClassifier(nn.Module):
-    def __init__(self, model_path, config, num_classes=33, dr_rate=None):
+    def __init__(self, model_path, config, num_classes, dr_rate=None):
         super(BBClassifier, self).__init__()
         if model_path == 'monologg/kobigbird-bert-base':
             config.attention_type = "block_sparse"
@@ -49,6 +49,8 @@ class BBClassifier(nn.Module):
         if dr_rate:
             self.dropout = nn.Dropout(p=dr_rate)
             self.dr_rate = dr_rate
+        else:
+            self.dr_rate = None
 
     def forward(self, input_ids, attention_mask, token_type_ids=None):
         model_out = self.base_model(input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids)
@@ -177,12 +179,12 @@ def make_fold(model_path, train_idx, val_idx, train_data, batch_size, tokenizer,
         return kfold_train_dataloader, kfold_val_dataloader
 
 
-def train_model(model_path, model, kfold_train_dataloader, optimizer, device, loss_fn, scheduler, fold, max_grad_norm, e):
+def train_model(model_path, model, kd_model, do_kd, kfold_train_dataloader, optimizer, device, loss_fn, kd_loss_func, scheduler, fold, max_grad_norm, e):
     model.train()
     train_losses = 0
     train_accuracy = 0
     if model_path == "monologg/kobigbird-bert-base":
-        for batch_id, data in enumerate(tqdm_notebook(kfold_train_dataloader)):
+        for batch_id, data in enumerate(tqdm(kfold_train_dataloader)):
             optimizer.zero_grad()
 
             input_ids = data['input_ids'].long().to(device)
@@ -191,8 +193,16 @@ def train_model(model_path, model, kfold_train_dataloader, optimizer, device, lo
             label = data['labels'].long().to(device)
 
             out = model(input_ids, attention_mask, token_type_ids)
-
             train_loss = loss_fn(out, label.float()).mean()
+
+            if do_kd:
+                with torch.no_grad():
+                    kd_out = kd_model(input_ids, attention_mask)
+                    kd_loss = kd_loss_func(out, kd_out)
+                train_loss += 1 * kd_loss
+                tmp_kd_model = model_ensemble(kd_model, model, e * len(kfold_train_dataloader) + batch_id)
+                kd_model.load_state_dict(tmp_kd_model)
+
             train_losses += train_loss.cpu().detach()
             accuracy, _ = calc_accuracy(out, label.float())
             train_accuracy += accuracy
@@ -216,11 +226,19 @@ def train_model(model_path, model, kfold_train_dataloader, optimizer, device, lo
             input_ids_batch = input_ids_batch.long().to(device)
             attention_masks_batch = attention_masks_batch.long().to(device)
             token_type_ids_batch = token_type_ids_batch.long().to(device)
-
             label = label.long().to(device)
-            out = model(input_ids_batch, attention_masks_batch, token_type_ids_batch)[0]
 
+            out = model(input_ids_batch, attention_masks_batch, token_type_ids_batch)[0]
             train_loss = loss_fn(out, label.float()).mean()
+
+            if do_kd:
+                with torch.no_grad():
+                    kd_out = kd_model(input_ids_batch, attention_masks_batch, token_type_ids_batch)[0]
+                kd_loss = kd_loss_func(out, kd_out)
+                train_loss += 1 * kd_loss
+                tmp_kd_model = model_ensemble(kd_model, model, e * len(kfold_train_dataloader) + batch_id)
+                kd_model.load_state_dict(tmp_kd_model)
+
             train_losses += train_loss.cpu().detach()
             accuracy, _ = calc_accuracy(out, label.float())
             train_accuracy += accuracy

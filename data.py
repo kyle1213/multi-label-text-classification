@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import re
 import random
+import pymysql
 # import pickle
 from collections import Counter
 from sklearn.model_selection import train_test_split
@@ -369,6 +370,72 @@ def shoes_data_prep():
     return train_data, test_data
 
 
+def bhc_create_multi_label_vector(data):
+    pos_vector = np.zeros(10)
+    for i in range(1, 11):
+      if '[' + str(i) + ']' in data['attr_p']:
+        pos_vector[i-1] = 1
+
+    neg_vector = np.zeros(10)
+    for i in range(1, 11):
+      if '[' + str(i) + ']' in data['attr_n']:
+        neg_vector[i-1] = 1
+
+    ques_vector = np.zeros(10)
+    for i in range(1, 11):
+      if '[' + str(i) + ']' in data['attr_q']:
+        ques_vector[i-1] = 1
+
+    neut_vector = np.zeros(1)
+    if '[11]' in data['neutrality']:
+      neut_vector[0] = 1
+
+    # 멀티 레이블 원핫 벡터 생성
+    multi_label_vector = np.concatenate((pos_vector, neg_vector, ques_vector, neut_vector)).tolist()
+
+    return multi_label_vector
+
+
+def bhc_data_prep():
+    load_type = str(input('load_type: '))
+    if load_type == 'db':
+        host = str(input('host: '))
+        user = str(input('user: '))
+        password = str(input('password: '))
+        db = str(input('db: '))
+        port = int(input('port: '))
+        db = pymysql.connect(host=host, user=user, password=password, db=db,
+                             charset='utf8', read_timeout=300, port=port)
+        query = str(input('query: '))
+        df = pd.read_sql(query, db)
+        db.close()
+    else:
+        df = pd.read_csv('./data/bhc_df.csv')
+        print(df['contents'][:3])
+
+    df_filtered = filter_null_contents(df)
+
+    df_filled = df_filtered.fillna('-')
+
+    labels = []
+    for index, data in df_filled.iterrows():
+        labels.append(bhc_create_multi_label_vector(data))
+
+    new_df = pd.DataFrame({'seq': df_filled['seq'], 'x': df_filled['title'] + df_filled['contents'], 'y': labels})
+
+    df_y_combined = new_df.groupby('seq')['y'].apply(sum_list_values).reset_index()
+    df_x_unique = new_df.drop_duplicates('seq')[['seq', 'x']]
+    df_combined = pd.merge(df_x_unique, df_y_combined, on='seq')
+
+    data_list = make_data_list(df_combined)
+
+    preprocessed_data_list = data_preprocess(data_list)
+
+    train_data, test_data = train_test_split(preprocessed_data_list, test_size=0.3, shuffle=False, random_state=0)
+
+    return train_data, test_data
+
+
 def data_eda(data):
     data_y = [d[1] for d in data]
 
@@ -508,7 +575,8 @@ def miniEasyDataAugmentation(data_set):
 
 
 if __name__ == '__main__':
-    train_data, test_data = data_prep()
+    data_name = str(input('data_name: '))
+    train_data, test_data = shoes_data_prep() if data_name == 'shoes' else bhc_data_prep()
 
     data_eda(train_data)
     data_eda(test_data)
