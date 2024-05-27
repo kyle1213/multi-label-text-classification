@@ -15,25 +15,25 @@ def connect_cuda():
     return device
 
 
-def micro_calculate_f1_score(predictions, targets):
+def micro_calculate_f1_score(targets, predictions):
     f1 = f1_score(targets, predictions, average='micro')
 
     return f1
 
 
-def macro_calculate_f1_score(predictions, targets):
+def macro_calculate_f1_score(targets, predictions):
     f1 = f1_score(targets, predictions, average='macro')
 
     return f1
 
 
-def samples_calculate_f1_score(predictions, targets):
+def samples_calculate_f1_score(targets, predictions):
     f1 = f1_score(targets, predictions, average='samples')
 
     return f1
 
 
-def weighted_calculate_f1_score(predictions, targets):
+def weighted_calculate_f1_score(targets, predictions):
     f1 = f1_score(targets, predictions, average='weighted')
 
     return f1
@@ -52,7 +52,7 @@ def calc_accuracy(xs, ys):
     return train_acc, train_cor
 
 
-def acc(predictions, targets):
+def acc(targets, predictions):
     total_acc = 0
     for pred, target in zip(predictions, targets):
         if all(pred == target):
@@ -61,7 +61,7 @@ def acc(predictions, targets):
     return mean_acc
 
 
-def partial_acc(predictions, targets, p):
+def partial_acc(targets, predictions, p):
     total_acc = 0
     for pred, target in zip(predictions, targets):
         match_count = 0
@@ -75,7 +75,7 @@ def partial_acc(predictions, targets, p):
     return mean_acc
 
 
-def calculate_one_accuracy(predictions, targets):
+def calculate_one_accuracy(targets, predictions):
     correct_count = 0
     total_count = 0
     for pred, target in zip(predictions, targets):
@@ -88,7 +88,7 @@ def calculate_one_accuracy(predictions, targets):
     return accuracy
 
 
-def calculate_zero_accuracy(predictions, targets):
+def calculate_zero_accuracy(targets, predictions):
     correct_count = 0
     total_count = 0
     for pred, target in zip(predictions, targets):
@@ -101,7 +101,7 @@ def calculate_zero_accuracy(predictions, targets):
     return accuracy
 
 
-def calculate_class_accuracy(predictions, targets, class_num):
+def calculate_class_accuracy(targets, predictions, class_num):
     zero_correct_count = 0
     total_zero_count = 0
     one_correct_count = 0
@@ -128,5 +128,20 @@ def calculate_class_accuracy(predictions, targets, class_num):
     return zero_accuracy, one_accuracy, total_one_count
 
 
-def f1_report(predictions, targets):
+def f1_report(targets, predictions):
     return classification_report(targets, predictions)
+
+
+def metrics(y, y_hat):
+    print('micro: ', micro_calculate_f1_score(y, y_hat))
+    print('samples: ', samples_calculate_f1_score(y, y_hat))
+    print('macro: ', macro_calculate_f1_score(y, y_hat))
+    print('weighted: ', weighted_calculate_f1_score(y, y_hat))
+    print('acc: ', acc(y, y_hat))
+    print('one_acc: ', calculate_one_accuracy(y, y_hat))
+    print('zero_acc: ', calculate_zero_accuracy(y, y_hat))
+    print('50%-partial acc: ', partial_acc(y, y_hat, 0.5))
+    print('80%-partial acc: ', partial_acc(y, y_hat, 0.8))
+    print('90%-partial acc: ', partial_acc(y, y_hat, 0.9))
+    print('95%-partial acc: ', partial_acc(y, y_hat, 0.95))
+    print(print(f1_report(y, y_hat)))

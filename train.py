@@ -88,7 +88,7 @@ for fold, (train_idx, val_idx) in enumerate(kfolds):
                              num_classes=config['num_classes'],
                              dr_rate=config['dr_rate']).to(device)
     else:  # elif config['pretrained_model_path'] == "beomi/KcELECTRA-base-v2022:
-        model = AutoModelForSequenceClassification.from_pretrained('beomi/KcELECTRA-base-v2022', num_labels=33, problem_type='multi_label_classification').to(device)
+        model = AutoModelForSequenceClassification.from_pretrained('beomi/KcELECTRA-base-v2022', num_labels=config['num_classes'], problem_type='multi_label_classification').to(device)
     earlystopping = EarlyStopping(path=str(config['model_save_path']) + str(config['model_save_name']) + str(fold) + 'fold_model.pt',
                                   patience=config['early_stop_patience'],
                                   verbose=True,
@@ -161,13 +161,13 @@ for fold, (train_idx, val_idx) in enumerate(kfolds):
     train_losses_list_per_fold.append(train_losses)
     val_losses_list_per_fold.append(val_losses)
 
-for i in range(5):
+for i in range(config['k_fold_N']):
     plt.plot(train_accs_per_fold[i])
     plt.plot(val_accs_per_fold[i])
     plt.show()
     plt.clf()
 
-for i in range(5):
+for i in range(config['k_fold_N']):
     plt.plot(train_losses_list_per_fold[i])
     plt.plot(val_losses_list_per_fold[i])
     plt.show()
