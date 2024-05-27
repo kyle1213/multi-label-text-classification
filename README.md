@@ -65,8 +65,8 @@ class 별 precision, recall, f1 score와 평균
 ![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-05-27%20140554.png)  
 
 
-class 별 정확도
-![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-05-27%20140627.png)
+class 별 정확도  
+![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-05-27%20140627.png)  
 
 
 
