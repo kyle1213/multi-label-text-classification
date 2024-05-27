@@ -43,10 +43,33 @@ details
 - lr가 계속 변하여 weight decay가 잘 반영되지 않는 adam을 개선한 adamw를 optimizer로 사용
 - loss : Asymmetric Loss for Imbalance data
 
-results
-![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/bhc_bb_acc_fold0.png)  
-bhc 도메인의 1번째 fold의 학습 정확도 그래프
+results  
 
+![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/bhc_bb_acc_fold0.png)  
+
+bhc 데이터의 1번째 fold의 학습 정확도 그래프  
+
+
+![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/bhc_bb_loss_fold0.png)  
+
+bhc 데이터의 1번째 fold의 학습 loss 그래프  
+
+![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-05-27%20140414.png)  
+
+bhc 데이터의 f1 score  
+
+![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-05-27%20140514.png)  
+
+accuracy  
+
+![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-05-27%20140546.png)
+![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-05-27%20140554.png)
+
+class 별 precision, recall, f1 score와 평균
+
+![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-05-27%20140627.png)
+
+class 별 정확도
 
 
 
