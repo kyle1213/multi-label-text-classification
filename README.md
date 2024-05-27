@@ -56,13 +56,13 @@ bhc 데이터의 f1 score
 ![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-05-27%20140414.png)  
 
 
-accuracy 
+accuracy  
 ![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-05-27%20140514.png)   
 
 
-class 별 precision, recall, f1 score와 평균
-![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-05-27%20140546.png)
-![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-05-27%20140554.png)
+class 별 precision, recall, f1 score와 평균  
+![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-05-27%20140546.png)  
+![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-05-27%20140554.png)  
 
 
 class 별 정확도
@@ -71,7 +71,6 @@ class 별 정확도
 
 
 # 메모
-------------
 
 few dataset
 - https://arxiv.org/abs/1901.11196
