@@ -44,7 +44,7 @@ details
 - loss : Asymmetric Loss for Imbalance data
 
 results
-![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/bhc_bb_acc_fold0.png)
+![](https://github.com/kyle1213/multi-label-text-classification/blob/main/imgs/bhc_bb_acc_fold0.png)  
 bhc 도메인의 1번째 fold의 학습 정확도 그래프
 
 
