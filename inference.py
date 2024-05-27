@@ -70,18 +70,7 @@ for t in t_list:
 
     y_labels = targets
 
-    print('micro: ', micro_calculate_f1_score(y_labels, ensemble))
-    print('samples: ', samples_calculate_f1_score(y_labels, ensemble))
-    print('macro: ', macro_calculate_f1_score(y_labels, ensemble))
-    print('weighted: ', weighted_calculate_f1_score(y_labels, ensemble))
-    print('acc: ', acc(y_labels, ensemble))
-    print('one_acc: ', calculate_one_accuracy(y_labels, ensemble))
-    print('zero_acc: ', calculate_zero_accuracy(y_labels, ensemble))
-    print('50%-partial acc: ', partial_acc(y_labels, ensemble, 0.5))
-    print('80%-partial acc: ', partial_acc(y_labels, ensemble, 0.8))
-    print('90%-partial acc: ', partial_acc(y_labels, ensemble, 0.9))
-    print('95%-partial acc: ', partial_acc(y_labels, ensemble, 0.95))
-    print(print(f1_report(y_labels, ensemble)))
+    metrics(targets, ensemble)
 
-    for i in range(31):
+    for i in range(config['num_classes']):
         print(i+1, calculate_class_accuracy(ensemble, y_labels, i))
