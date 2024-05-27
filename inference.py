@@ -1,6 +1,6 @@
 import torch.utils.data
 from train_module import Dataset, BBClassifier
-from data import shoes_data_prep, bhc_data_prep
+from data import data_prep
 from transformers import AutoTokenizer, AutoConfig
 from tqdm import tqdm_notebook
 from utils import *
@@ -21,7 +21,7 @@ bhc_config = {
 
 config = bhc_config
 
-train_data, test_data = shoes_data_prep() if config['data_prep'] == 'shoes' else bhc_data_prep()
+train_data, test_data = data_prep(data_name=config['data_prep'])
 
 tokenizer = AutoTokenizer.from_pretrained(config['pretrained_model_path'])
 model_config = AutoConfig.from_pretrained(config['pretrained_model_path'])
@@ -58,11 +58,12 @@ for fold in range(config['k_fold_N']):
 
     test_inferences.append(test_inference)
 
-t_list = [0.5, 1.5, 2.5, 3.5, 4.5]
+t_list = [i + 0.5 for i in range(config['k_fold_N'])]
 for t in t_list:
     ensemble = []
-    for a, b, c, d, e in zip(test_inferences[0], test_inferences[1], test_inferences[2], test_inferences[3], test_inferences[4]):
-        x = a+b+c+d+e
+    tmp_list = [test_inferences[i] for i in range(config['k_fold_N'])]
+    for x in zip(*tmp_list):
+        x = sum(x)
         ensemble.append(x)
 
     for i, t_ in enumerate(ensemble):
@@ -73,4 +74,4 @@ for t in t_list:
     metrics(targets, ensemble)
 
     for i in range(config['num_classes']):
-        print(i+1, calculate_class_accuracy(ensemble, y_labels, i))
+        print(i+1, calculate_class_accuracy(y_labels, ensemble, i))

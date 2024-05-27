@@ -436,6 +436,13 @@ def bhc_data_prep():
     return train_data, test_data
 
 
+def data_prep(data_name):
+    if data_name == 'shoes':
+        return shoes_data_prep()
+    elif data_name == 'bhc':
+        return bhc_data_prep()
+
+
 def data_eda(data):
     data_y = [d[1] for d in data]
 
@@ -576,7 +583,7 @@ def miniEasyDataAugmentation(data_set):
 
 if __name__ == '__main__':
     data_name = str(input('data_name: '))
-    train_data, test_data = shoes_data_prep() if data_name == 'shoes' else bhc_data_prep()
+    train_data, test_data = data_prep(data_name=data_name)
 
     data_eda(train_data)
     data_eda(test_data)

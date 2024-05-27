@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.utils.data
 from torch import nn
-from transformers import AutoModel, AutoTokenizer
+from transformers import AutoModel, AutoTokenizer, AutoModelForSequenceClassification
 from utils import calc_accuracy
 from data import FullEasyDataAugmentation, PartialEasyDataAugmentation, miniEasyDataAugmentation
 from tqdm.notebook import tqdm
@@ -60,6 +60,23 @@ class BBClassifier(nn.Module):
             out = self.dropout(out)
 
         return self.classifier(out)
+
+
+def get_model(config, pre_trained_model_config, device):
+    if config['pretrained_model_path'] == "monologg/kobigbird-bert-base":
+        model = BBClassifier(model_path=config['pretrained_model_path'],
+                             config=pre_trained_model_config,
+                             num_classes=config['num_classes'],
+                             dr_rate=config['dr_rate']).to(device)
+
+        return model
+
+    elif config['pretrained_model_path'] == "beomi/KcELECTRA-base-v2022":
+        model = AutoModelForSequenceClassification.from_pretrained('beomi/KcELECTRA-base-v2022',
+                                                                   num_labels=config['num_classes'],
+                                                                   problem_type='multi_label_classification').to(device)
+
+        return model
 
 
 class AsymmetricLoss(nn.Module):

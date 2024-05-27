@@ -5,7 +5,7 @@ from transformers.optimization import get_cosine_schedule_with_warmup
 from sklearn.model_selection import KFold
 from data import *
 from utils import *
-from train_module import AsymmetricLoss, EarlyStopping, BBClassifier, train_model, validate_model, make_fold
+from train_module import AsymmetricLoss, EarlyStopping, get_model, train_model, validate_model, make_fold
 
 
 device = connect_cuda()
@@ -61,13 +61,13 @@ bhc_config = {
 
 config = bhc_config
 
-train_data, test_data = shoes_data_prep() if config['data_prep'] == 'shoes' else bhc_data_prep()
+train_data, test_data = data_prep(config['data_prep'])
 print(len(train_data), len(test_data))
 
 tokenizer = AutoTokenizer.from_pretrained(config['pretrained_model_path'])
-model_config = AutoConfig.from_pretrained(config['pretrained_model_path'])
-model_config._name_or_path = 'kr.kim'
-print(model_config)
+pre_trained_model_config = AutoConfig.from_pretrained(config['pretrained_model_path'])
+pre_trained_model_config._name_or_path = 'kr.kim'
+print('pre_trained_model_config: ', pre_trained_model_config)
 
 kfold = KFold(n_splits=config['k_fold_N'],
               shuffle=config['k_fold_shuffle'],
@@ -82,33 +82,39 @@ val_accs_per_fold = []
 for fold, (train_idx, val_idx) in enumerate(kfolds):
     train_losses, val_losses = [], []
     train_accs, val_accs = [], []
-    if config['pretrained_model_path'] == "monologg/kobigbird-bert-base":
-        model = BBClassifier(model_path=config['pretrained_model_path'],
-                             config=model_config,
-                             num_classes=config['num_classes'],
-                             dr_rate=config['dr_rate']).to(device)
-    else:  # elif config['pretrained_model_path'] == "beomi/KcELECTRA-base-v2022:
-        model = AutoModelForSequenceClassification.from_pretrained('beomi/KcELECTRA-base-v2022', num_labels=config['num_classes'], problem_type='multi_label_classification').to(device)
-    earlystopping = EarlyStopping(path=str(config['model_save_path']) + str(config['model_save_name']) + str(fold) + 'fold_model.pt',
-                                  patience=config['early_stop_patience'],
-                                  verbose=True,
-                                  delta=config['early_stop_delta'])
 
-    kfold_train_dataloader, kfold_val_dataloader = make_fold(model_path=config['pretrained_model_path'],
-                                                             train_idx=train_idx,
-                                                             val_idx=val_idx,
-                                                             train_data=train_data,
-                                                             batch_size=config['batch_size'],
-                                                             tokenizer=tokenizer,
-                                                             length=config['max_length_token'])
+    model = get_model(
+        config=config,
+        pre_trained_model_config=pre_trained_model_config,
+        device=device
+    )
+
+    earlystopping = EarlyStopping(
+        path=str(config['model_save_path']) + str(config['model_save_name']) + str(fold) + 'fold_model.pt',
+        patience=config['early_stop_patience'],
+        verbose=True,
+        delta=config['early_stop_delta']
+    )
+
+    kfold_train_dataloader, kfold_val_dataloader = make_fold(
+        model_path=config['pretrained_model_path'],
+        train_idx=train_idx,
+        val_idx=val_idx,
+        train_data=train_data,
+        batch_size=config['batch_size'],
+        tokenizer=tokenizer,
+        length=config['max_length_token']
+    )
 
     no_decay = ['bias', 'LayerNorm.weight']
     optimizer_grouped_parameters = [
         {'params': [p for n, p in model.named_parameters() if not any(nd in n for nd in no_decay)], 'weight_decay': config['weight_decay']},
         {'params': [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': config['no_weight_decay']}
     ]
-    optimizer = config['optimizer'](optimizer_grouped_parameters,
-                                    lr=config['learning_rate'])
+    optimizer = config['optimizer'](
+        params=optimizer_grouped_parameters,
+        lr=config['learning_rate']
+    )
     loss_fn = config['loss_fn']
 
     if config['KD']:
@@ -121,40 +127,50 @@ for fold, (train_idx, val_idx) in enumerate(kfolds):
 
     t_total = len(kfold_train_dataloader) * config['num_epochs']
     warmup_step = int(t_total * config['warmup_ratio'])
-    scheduler = get_cosine_schedule_with_warmup(optimizer=optimizer,
-                                                num_warmup_steps=warmup_step,
-                                                num_training_steps=t_total)
+    scheduler = get_cosine_schedule_with_warmup(
+        optimizer=optimizer,
+        num_warmup_steps=warmup_step,
+        num_training_steps=t_total
+    )
 
     for e in range(config['num_epochs']):
-        train_loss, train_acc, scheduler = train_model(model_path=config['pretrained_model_path'],
-                                                       model=model,
-                                                       kd_model=kd_model,
-                                                       do_kd=config['KD'],
-                                                       kfold_train_dataloader=kfold_train_dataloader,
-                                                       optimizer=optimizer,
-                                                       device=device,
-                                                       loss_fn=loss_fn,
-                                                       kd_loss_func=kd_loss_func,
-                                                       scheduler=scheduler,
-                                                       fold=fold,
-                                                       max_grad_norm=config['max_grad_norm'],
-                                                       e=e)
-        val_loss, val_acc = validate_model(model_path=config['pretrained_model_path'],
-                                           model=model,
-                                           kfold_val_dataloader=kfold_val_dataloader,
-                                           device=device,
-                                           loss_fn=loss_fn,
-                                           fold=fold,
-                                           e=e)
+        train_loss, train_acc, scheduler = train_model(
+            model_path=config['pretrained_model_path'],
+            model=model,
+            kd_model=kd_model,
+            do_kd=config['KD'],
+            kfold_train_dataloader=kfold_train_dataloader,
+            optimizer=optimizer,
+            device=device,
+            loss_fn=loss_fn,
+            kd_loss_func=kd_loss_func,
+            scheduler=scheduler,
+            fold=fold,
+            max_grad_norm=config['max_grad_norm'],
+            e=e
+        )
 
-        earlystopping(val_loss=val_loss,
-                      model=model)
-        if earlystopping.early_stop:
-            break
+        val_loss, val_acc = validate_model(
+            model_path=config['pretrained_model_path'],
+            model=model,
+            kfold_val_dataloader=kfold_val_dataloader,
+            device=device,
+            loss_fn=loss_fn,
+            fold=fold,
+            e=e
+        )
+
+        earlystopping(
+            val_loss=val_loss,
+            model=model
+        )
         train_losses.append(train_loss)
         train_accs.append(train_acc)
         val_losses.append(val_loss)
         val_accs.append(val_acc)
+
+        if earlystopping.early_stop:
+            break
 
     train_accs_per_fold.append(train_accs)
     val_accs_per_fold.append(val_accs)
