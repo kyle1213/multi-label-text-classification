@@ -124,7 +124,7 @@ class AsymmetricLoss(nn.Module):
                 torch.set_grad_enabled(True)
             loss *= one_sided_w
 
-        return -loss.sum(1)
+        return -loss.sum()
 
 
 class EarlyStopping:
